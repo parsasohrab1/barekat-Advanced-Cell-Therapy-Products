@@ -97,6 +97,8 @@ class SimulationResponse(BaseModel):
     safety_score: float | None = None
     longitudinal: list[LongitudinalPoint] = Field(default_factory=list)
     explanation: ModelExplanation | None = None
+    clinical_narrative: str | None = None
+    inference_source: str | None = None
     created_at: datetime | None = None
 
 
@@ -145,3 +147,58 @@ class BatchJobResponse(BaseModel):
     total_items: int
     completed_items: int
     results: list[SimulationResponse] = Field(default_factory=list)
+
+
+class UserRegister(BaseModel):
+    email: str
+    password: str = Field(..., min_length=6)
+    full_name: str = ""
+    role: Literal["viewer", "clinician", "scientist", "admin"] = "clinician"
+
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    role: str
+    user_id: str
+
+
+class UserResponse(BaseModel):
+    user_id: str
+    email: str
+    full_name: str
+    role: str
+    is_active: bool
+
+
+class AuditLogResponse(BaseModel):
+    id: int
+    actor_id: str | None = None
+    action: str
+    resource_type: str
+    resource_id: str | None = None
+    detail_json: str | None = None
+    created_at: datetime | None = None
+
+
+class EvaluationResponse(BaseModel):
+    accuracy: float
+    sensitivity: dict
+    specificity: dict
+    precision: float
+    f1_score: float
+    roc_auc: float
+    confusion_matrix: dict
+    cross_validation: list[dict] = Field(default_factory=list)
+    n_samples: int
+    feature_columns: list[str] = Field(default_factory=list)
+
+
+class ModelRegistryResponse(BaseModel):
+    production_version: str
+    versions: list[dict] = Field(default_factory=list)

@@ -7,5 +7,14 @@ from barekat_cell_therapy.models.patient import (
     ProductionProtocol,
     Simulation,
 )
+from barekat_cell_therapy.models.user import AuditLog, User
 
-__all__ = ["Patient", "CarDesign", "Simulation", "ProductionProtocol", "BatchJob"]
+__all__ = [
+    "Patient",
+    "CarDesign",
+    "Simulation",
+    "ProductionProtocol",
+    "BatchJob",
+    "User",
+    "AuditLog",
+]

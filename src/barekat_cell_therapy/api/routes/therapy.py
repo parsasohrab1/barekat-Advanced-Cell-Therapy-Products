@@ -73,23 +73,27 @@ def batch_simulate(
     db.add(job)
     db.commit()
 
+    queued = False
     try:
         from barekat_cell_therapy.tasks import batch_simulate_task
 
-        batch_simulate_task.delay(job_id, payload.patient_ids)
+        async_result = batch_simulate_task.delay(job_id, payload.patient_ids)
+        queued = async_result is not None
     except Exception:
-        # Fallback: run inline if Celery unavailable
-        from barekat_cell_therapy.tasks import batch_simulate_task as sync_task
+        queued = False
 
-        sync_task(job_id, payload.patient_ids)
-        job = db.query(BatchJob).filter(BatchJob.job_id == job_id).first()
+    if not queued:
+        from barekat_cell_therapy.tasks import batch_simulate_task
+
+        batch_simulate_task(job_id, payload.patient_ids)
+        db.refresh(job)
 
     return BatchJobResponse(
         job_id=job_id,
         job_type="simulate",
-        status=job.status if job else "pending",
+        status=job.status,
         total_items=len(payload.patient_ids),
-        completed_items=job.completed_items if job else 0,
+        completed_items=job.completed_items,
     )
 
 

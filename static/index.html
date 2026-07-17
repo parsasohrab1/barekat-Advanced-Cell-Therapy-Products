@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>barekat Cell Therapy — Console</title>
+  <style>
+    :root {
+      --bg: #0f1c24;
+      --panel: #162a35;
+      --text: #e8f1f5;
+      --muted: #8aa3b0;
+      --accent: #2bb0a6;
+      --warn: #e0a45c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      background: radial-gradient(circle at top right, #1d3a48, var(--bg));
+      color: var(--text);
+      min-height: 100vh;
+    }
+    header {
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid #243d4a;
+    }
+    h1 { margin: 0; font-size: 1.4rem; letter-spacing: 0.02em; }
+    header p { margin: 0.4rem 0 0; color: var(--muted); }
+    main {
+      display: grid;
+      gap: 1rem;
+      padding: 1.5rem 2rem 3rem;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+    section {
+      background: var(--panel);
+      border: 1px solid #2a4555;
+      border-radius: 12px;
+      padding: 1.1rem 1.2rem;
+    }
+    h2 { margin: 0 0 0.8rem; font-size: 1rem; color: var(--accent); }
+    label { display: block; font-size: 0.85rem; color: var(--muted); margin-top: 0.6rem; }
+    input, textarea, select, button {
+      width: 100%;
+      margin-top: 0.35rem;
+      padding: 0.55rem 0.7rem;
+      border-radius: 8px;
+      border: 1px solid #355666;
+      background: #0f2029;
+      color: var(--text);
+    }
+    button {
+      background: linear-gradient(135deg, #2bb0a6, #1f8f9a);
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      margin-top: 0.9rem;
+    }
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: #0b171e;
+      border-radius: 8px;
+      padding: 0.8rem;
+      font-size: 0.8rem;
+      max-height: 320px;
+      overflow: auto;
+      color: #c9e2ea;
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      background: #214652;
+      color: var(--warn);
+      font-size: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>barekat Advanced Cell Therapy</h1>
+    <p>کنسول بالینی — طراحی CAR، شبیه‌سازی پاسخ و Explainability <span class="badge">v0.2</span></p>
+  </header>
+  <main>
+    <section>
+      <h2>ثبت بیمار</h2>
+      <label>Patient ID</label>
+      <input id="patientId" value="CT_DEMO_001" />
+      <label>آنتی‌ژن هدف (بیان %)</label>
+      <input id="antigen" value="CD19" />
+      <input id="expr" type="number" value="78" />
+      <button onclick="registerPatient()">ثبت پروفایل</button>
+    </section>
+    <section>
+      <h2>طرح کامل درمان</h2>
+      <label>Patient ID</label>
+      <input id="planPatient" value="CT_DEMO_001" />
+      <button onclick="runPlan()">اجرای Plan</button>
+    </section>
+    <section style="grid-column: 1 / -1;">
+      <h2>نتیجه / روایت بالینی</h2>
+      <pre id="out">آماده.</pre>
+    </section>
+  </main>
+  <script>
+    const API = "/api/v1";
+    function show(data) {
+      document.getElementById("out").textContent = typeof data === "string" ? data : JSON.stringify(data, null, 2);
+    }
+    async function registerPatient() {
+      const patient_id = document.getElementById("patientId").value;
+      const antigen = document.getElementById("antigen").value;
+      const expression_pct = Number(document.getElementById("expr").value);
+      const res = await fetch(API + "/patients/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patient_id,
+          hla_profile: [{ allele: "HLA-A*02:01", copies: 1 }],
+          antigen_expression: [{ antigen, expression_pct }]
+        })
+      });
+      show(await res.json());
+    }
+    async function runPlan() {
+      const patient_id = document.getElementById("planPatient").value;
+      const res = await fetch(API + "/therapy/plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ patient_id, dose_cells: 1e8 })
+      });
+      const data = await res.json();
+      if (data.simulation && data.simulation.clinical_narrative) {
+        show(data.simulation.clinical_narrative + "\n\n" + JSON.stringify(data, null, 2));
+      } else {
+        show(data);
+      }
+    }
+  </script>
+</body>
+</html>

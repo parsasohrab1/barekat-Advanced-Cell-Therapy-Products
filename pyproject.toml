@@ -1,6 +1,6 @@
 [project]
 name = "barekat-cell-therapy"
-version = "0.1.0"
+version = "0.2.0"
 description = "پلتفرم طراحی و شبیه‌سازی درمان‌های سلولی شخصی‌سازی‌شده (CAR-T)"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -23,6 +23,7 @@ dependencies = [
     "joblib>=1.4.0",
     "structlog>=24.4.0",
     "prometheus-client>=0.21.0",
+    "PyJWT>=2.9.0",
 ]
 
 [project.optional-dependencies]

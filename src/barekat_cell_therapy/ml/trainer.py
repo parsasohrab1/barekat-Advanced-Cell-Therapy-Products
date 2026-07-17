@@ -64,7 +64,21 @@ def train_response_model(df: pd.DataFrame, output_dir: str | None = None) -> dic
         "feature_columns": FEATURE_COLUMNS,
     }
 
+    metrics["model_version"] = "v1"
     model_path = out / settings.response_model
     joblib.dump({"model": model, "features": FEATURE_COLUMNS, "metrics": metrics}, model_path)
     metrics["model_path"] = str(model_path)
+
+    from barekat_cell_therapy.ml.registry import register_model
+
+    register_model(
+        version="v1",
+        file=settings.response_model,
+        metrics={k: v for k, v in metrics.items() if k != "feature_columns"},
+        promote=True,
+    )
+    # Invalidate cached predictor after retrain
+    from barekat_cell_therapy.ml.predictor import load_response_model
+
+    load_response_model.cache_clear()
     return metrics

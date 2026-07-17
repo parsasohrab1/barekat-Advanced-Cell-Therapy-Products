@@ -79,6 +79,21 @@ def create_patient(db: Session, payload: PatientCreate) -> PatientResponse:
     db.add(patient)
     db.commit()
     db.refresh(patient)
+    try:
+        from barekat_cell_therapy.core.metrics import PATIENT_COUNTER
+
+        PATIENT_COUNTER.inc()
+    except Exception:
+        pass
+    from barekat_cell_therapy.services.audit import write_audit
+
+    write_audit(
+        db,
+        action="patient.create",
+        resource_type="patient",
+        resource_id=payload.patient_id,
+        detail={"best_target": best},
+    )
     return patient_to_response(patient)
 
 
@@ -189,13 +204,26 @@ def run_simulation(db: Session, payload: SimulationRequest) -> SimulationRespons
         efficacy_score=result["efficacy_score"],
         safety_score=result["safety_score"],
         longitudinal_json=json.dumps(result["longitudinal"]),
-        explanation_json=json.dumps(result["explanation"]),
+        explanation_json=json.dumps(
+            {
+                **result["explanation"],
+                "clinical_narrative": result.get("clinical_narrative"),
+                "inference_source": result.get("inference_source"),
+            }
+        ),
         result_object_key=object_key,
         completed_at=datetime.now(timezone.utc),
     )
     db.add(row)
     db.commit()
     db.refresh(row)
+    try:
+        from barekat_cell_therapy.core.metrics import SIMULATION_COUNTER
+
+        outcome = "responder" if result.get("predicted_response") else "non_responder"
+        SIMULATION_COUNTER.labels(outcome=outcome).inc()
+    except Exception:
+        pass
     return simulation_to_response(row, result)
 
 
@@ -204,9 +232,20 @@ def simulation_to_response(row: Simulation, result: dict | None = None) -> Simul
     longitudinal = data.get("longitudinal")
     if longitudinal is None and row.longitudinal_json:
         longitudinal = json.loads(row.longitudinal_json)
+
     explanation = data.get("explanation")
-    if explanation is None and row.explanation_json:
-        explanation = json.loads(row.explanation_json)
+    narrative = data.get("clinical_narrative")
+    inference_source = data.get("inference_source")
+
+    if row.explanation_json and explanation is None:
+        stored = json.loads(row.explanation_json)
+        narrative = narrative or stored.get("clinical_narrative")
+        inference_source = inference_source or stored.get("inference_source")
+        explanation = {
+            k: stored[k]
+            for k in ("model_version", "predicted_outcome", "confidence", "top_features", "method")
+            if k in stored
+        }
 
     expl = None
     if explanation:
@@ -231,6 +270,8 @@ def simulation_to_response(row: Simulation, result: dict | None = None) -> Simul
         safety_score=row.safety_score,
         longitudinal=[LongitudinalPoint(**p) for p in (longitudinal or [])],
         explanation=expl,
+        clinical_narrative=narrative,
+        inference_source=inference_source,
         created_at=row.created_at,
     )
 

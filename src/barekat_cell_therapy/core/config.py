@@ -53,6 +53,11 @@ class Settings(BaseSettings):
     phi_encryption_enabled: bool = False
     audit_log_enabled: bool = True
 
+    # Auth
+    secret_key: str = "barekat-cell-therapy-dev-secret-change-me"
+    access_token_expire_minutes: int = 480
+    auth_required: bool = False
+
     # ML Models
     model_path: str = "data/models"
     response_model: str = "response_predictor_v1.pkl"

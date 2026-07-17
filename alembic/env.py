@@ -14,6 +14,7 @@ from barekat_cell_therapy.models.patient import (  # noqa: F401
     ProductionProtocol,
     Simulation,
 )
+from barekat_cell_therapy.models.user import AuditLog, User  # noqa: F401
 
 config = context.config
 if config.config_file_name is not None:

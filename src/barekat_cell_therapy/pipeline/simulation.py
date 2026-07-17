@@ -8,6 +8,9 @@ import numpy as np
 
 from barekat_cell_therapy.core.config import get_settings
 from barekat_cell_therapy.data.synthetic import CAR_EFFICIENCY, TIME_POINTS
+from barekat_cell_therapy.ml.explainability import explain_prediction
+from barekat_cell_therapy.ml.predictor import predict_response
+from barekat_cell_therapy.pipeline.clinical_narrative import build_clinical_narrative
 
 
 def _hla_boost(hla_profile: dict[str, int]) -> float:
@@ -17,6 +20,20 @@ def _hla_boost(hla_profile: dict[str, int]) -> float:
     if hla_profile.get("HLA-DRB1*01:01", 0) > 0:
         boost += 0.03 * hla_profile["HLA-DRB1*01:01"]
     return boost
+
+
+def _heuristic_probability(
+    target_antigen: str,
+    car_version: str,
+    antigen_expression: dict[str, float],
+    hla_profile: dict[str, int],
+    dose_cells: float,
+) -> tuple[float, float]:
+    expr = antigen_expression.get(target_antigen, 0.0)
+    base = CAR_EFFICIENCY.get(car_version, 0.7) * (expr / 100.0)
+    dose_factor = float(np.clip(np.log10(max(dose_cells, 1)) / 8.0, 0.7, 1.2))
+    response_prob = float(np.clip(base * dose_factor + _hla_boost(hla_profile), 0.05, 0.98))
+    return response_prob, dose_factor
 
 
 def simulate_therapy(
@@ -30,25 +47,59 @@ def simulate_therapy(
     horizon_days: int | None = None,
     seed: int | None = None,
 ) -> dict:
-    """پیش‌بینی پاسخ، CRS و داده‌های طولی."""
+    """پیش‌بینی پاسخ، CRS و داده‌های طولی — با مدل آموزش‌دیده در صورت وجود."""
     settings = get_settings()
     rng = np.random.default_rng(seed)
     horizon = horizon_days or settings.simulation_horizon_days
 
-    expr = antigen_expression.get(target_antigen, 0.0)
-    base = CAR_EFFICIENCY.get(car_version, 0.7) * (expr / 100.0)
-    dose_factor = float(np.clip(np.log10(dose_cells) / 8.0, 0.7, 1.2))
-    response_prob = float(np.clip(base * dose_factor + _hla_boost(hla_profile), 0.05, 0.98))
+    ml_result = predict_response(antigen_expression, hla_profile, car_version)
+    dose_factor = float(np.clip(np.log10(max(dose_cells, 1)) / 8.0, 0.7, 1.2))
 
-    predicted_response = bool(rng.random() < response_prob)
+    if ml_result is not None:
+        response_prob = float(np.clip(ml_result["response_probability"] * dose_factor, 0.05, 0.98))
+        predicted_response = bool(response_prob >= 0.5)
+        explanation = explain_prediction(
+            ml_result["model"],
+            ml_result["feature_columns"],
+            ml_result["features"],
+            model_version=ml_result["model_version"],
+        )
+        explanation_payload = explanation.model_dump()
+        inference_source = "ml_model"
+    else:
+        response_prob, dose_factor = _heuristic_probability(
+            target_antigen, car_version, antigen_expression, hla_profile, dose_cells
+        )
+        predicted_response = bool(rng.random() < response_prob)
+        expr = antigen_expression.get(target_antigen, 0.0)
+        explanation_payload = {
+            "model_version": "heuristic",
+            "predicted_outcome": "responder" if predicted_response else "non_responder",
+            "confidence": round(response_prob if predicted_response else 1 - response_prob, 3),
+            "top_features": [
+                {
+                    "feature": f"{target_antigen}_Expression",
+                    "value": expr,
+                    "contribution": round(expr / 100 * 0.4, 3),
+                    "direction": "positive" if expr > 30 else "negative",
+                },
+                {
+                    "feature": "car_efficacy",
+                    "value": CAR_EFFICIENCY.get(car_version, 0.7),
+                    "contribution": round(CAR_EFFICIENCY.get(car_version, 0.7) * 0.35, 3),
+                    "direction": "positive",
+                },
+            ],
+            "method": "heuristic",
+        }
+        inference_source = "heuristic"
 
     if predicted_response and response_prob > settings.crs_risk_threshold:
         crs_grade = int(rng.choice([0, 1, 2, 3, 4], p=[0.3, 0.3, 0.2, 0.15, 0.05]))
     else:
         crs_grade = int(rng.choice([0, 1, 2], p=[0.7, 0.2, 0.1]))
 
-    neuro_risk = 0.3 if crs_grade >= 3 else 0.05
-    neurotoxicity_risk = float(neuro_risk)
+    neurotoxicity_risk = 0.3 if crs_grade >= 3 else 0.05
 
     days = [d for d in TIME_POINTS if d <= horizon]
     longitudinal = []
@@ -58,7 +109,11 @@ def simulate_therapy(
             relapse_prob = 0.02 * (day / 30) * (1 - response_prob)
             if rng.random() < relapse_prob:
                 still_responding = False
-        tumor = 100.0 * (1 - response_prob) if not still_responding else max(5.0, 100 * (1 - response_prob * day / horizon))
+        tumor = (
+            100.0 * (1 - response_prob)
+            if not still_responding
+            else max(5.0, 100 * (1 - response_prob * day / horizon))
+        )
         longitudinal.append(
             {
                 "day": day,
@@ -69,33 +124,15 @@ def simulate_therapy(
 
     efficacy = response_prob * (1 - crs_grade / 10)
     safety = 1.0 - (crs_grade / 4.0) * 0.5 - neurotoxicity_risk * 0.3
-
-    contributions = [
-        {
-            "feature": f"{target_antigen}_expression",
-            "value": expr,
-            "contribution": round(expr / 100 * 0.4, 3),
-            "direction": "positive" if expr > 30 else "negative",
-        },
-        {
-            "feature": "car_version_efficacy",
-            "value": CAR_EFFICIENCY.get(car_version, 0.7),
-            "contribution": round(CAR_EFFICIENCY.get(car_version, 0.7) * 0.35, 3),
-            "direction": "positive",
-        },
-        {
-            "feature": "hla_boost",
-            "value": _hla_boost(hla_profile),
-            "contribution": round(_hla_boost(hla_profile), 3),
-            "direction": "positive" if _hla_boost(hla_profile) > 0 else "negative",
-        },
-        {
-            "feature": "dose_factor",
-            "value": dose_factor,
-            "contribution": round((dose_factor - 1) * 0.2, 3),
-            "direction": "positive" if dose_factor >= 1 else "negative",
-        },
-    ]
+    narrative = build_clinical_narrative(
+        target_antigen=target_antigen,
+        car_version=car_version,
+        response_probability=response_prob,
+        predicted_response=predicted_response,
+        crs_grade=crs_grade,
+        neurotoxicity_risk=neurotoxicity_risk,
+        explanation=explanation_payload,
+    )
 
     return {
         "simulation_id": f"SIM_{uuid.uuid4().hex[:12].upper()}",
@@ -109,11 +146,7 @@ def simulate_therapy(
         "efficacy_score": round(float(efficacy), 3),
         "safety_score": round(float(np.clip(safety, 0, 1)), 3),
         "longitudinal": longitudinal,
-        "explanation": {
-            "model_version": "v1",
-            "predicted_outcome": "responder" if predicted_response else "non_responder",
-            "confidence": round(response_prob if predicted_response else 1 - response_prob, 3),
-            "top_features": contributions,
-            "method": "feature_importance",
-        },
+        "explanation": explanation_payload,
+        "clinical_narrative": narrative,
+        "inference_source": inference_source,
     }

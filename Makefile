@@ -1,4 +1,4 @@
-.PHONY: setup infra generate-data train api worker test lint migrate
+.PHONY: setup infra generate-data train evaluate api worker test lint migrate
 
 setup:
 	pip install -e ".[dev]"
@@ -11,6 +11,9 @@ generate-data:
 
 train:
 	python scripts/train_model.py
+
+evaluate:
+	python scripts/evaluate_model.py
 
 api:
 	uvicorn barekat_cell_therapy.api.main:app --reload --host 0.0.0.0 --port 8000

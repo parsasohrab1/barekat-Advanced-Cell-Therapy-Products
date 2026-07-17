@@ -99,8 +99,14 @@ make setup          # نصب وابستگی‌ها
 make infra          # راه‌اندازی Docker
 make generate-data  # تولید داده سنتتیک
 make train          # آموزش مدل
+make evaluate       # ارزیابی مدل
 make api            # اجرای API
 make worker         # Celery worker
 make migrate        # مهاجرت پایگاه داده
 make test           # اجرای تست‌ها
 ```
+
+## Maturity (v0.2)
+
+مدل آموزش‌دیده در inference، explainability، ارزیابی، JWT/audit، `/metrics` و داشبورد `/dashboard/` فعال است.
+جزئیات: [ARCHITECTURE.md](ARCHITECTURE.md) و [API.md](API.md).

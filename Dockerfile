@@ -12,6 +12,7 @@ RUN pip install --no-cache-dir -e ".[dev]"
 COPY src/ src/
 COPY alembic/ alembic/
 COPY alembic.ini .
+COPY static/ static/
 
 ENV PYTHONPATH=/app/src
 EXPOSE 8000
