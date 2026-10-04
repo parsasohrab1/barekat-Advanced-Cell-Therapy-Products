@@ -1,4 +1,4 @@
-"""مدل‌های کاربر و audit."""
+"""User and audit models."""
 
 from datetime import datetime
 

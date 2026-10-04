@@ -1,4 +1,4 @@
-"""اسکیماهای Pydantic برای API."""
+"""Pydantic schemas for the API."""
 
 from datetime import datetime
 from typing import Literal

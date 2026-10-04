@@ -1,4 +1,4 @@
-"""تولید داده‌های سنتتیک برای درمان‌های سلولی (CAR-T)."""
+"""Generate synthetic data for cell therapies (CAR-T)."""
 
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ def generate_cell_therapy_data(
     n_patients: int = 200,
     seed: int = 42,
 ) -> pd.DataFrame:
-    """تولید پروفایل بیماران سنتتیک با HLA، آنتی‌ژن، پاسخ و عوارض."""
+    """Generate synthetic patient profiles with HLA, antigen, response and adverse events."""
     rng = np.random.default_rng(seed)
 
     hla_data: dict[str, np.ndarray] = {}

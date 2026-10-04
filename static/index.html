@@ -81,27 +81,27 @@
 <body>
   <header>
     <h1>barekat Advanced Cell Therapy</h1>
-    <p>کنسول بالینی — طراحی CAR، شبیه‌سازی پاسخ و Explainability <span class="badge">v0.2</span></p>
+    <p>Clinical console — CAR design, response simulation and Explainability <span class="badge">v0.2</span></p>
   </header>
   <main>
     <section>
-      <h2>ثبت بیمار</h2>
+      <h2>Register Patient</h2>
       <label>Patient ID</label>
       <input id="patientId" value="CT_DEMO_001" />
-      <label>آنتی‌ژن هدف (بیان %)</label>
+      <label>Target antigen (expression %)</label>
       <input id="antigen" value="CD19" />
       <input id="expr" type="number" value="78" />
-      <button onclick="registerPatient()">ثبت پروفایل</button>
+      <button onclick="registerPatient()">Register profile</button>
     </section>
     <section>
-      <h2>طرح کامل درمان</h2>
+      <h2>Full Therapy Plan</h2>
       <label>Patient ID</label>
       <input id="planPatient" value="CT_DEMO_001" />
-      <button onclick="runPlan()">اجرای Plan</button>
+      <button onclick="runPlan()">Run Plan</button>
     </section>
     <section style="grid-column: 1 / -1;">
-      <h2>نتیجه / روایت بالینی</h2>
-      <pre id="out">آماده.</pre>
+      <h2>Result / Clinical Narrative</h2>
+      <pre id="out">Ready.</pre>
     </section>
   </main>
   <script>

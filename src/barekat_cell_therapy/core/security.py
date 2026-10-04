@@ -1,4 +1,4 @@
-"""امنیت: JWT سبک با PyJWT و PBKDF2."""
+"""Security: lightweight JWT with PyJWT and PBKDF2."""
 
 from __future__ import annotations
 
@@ -44,4 +44,4 @@ def verify_access_token(token: str) -> dict:
     try:
         return jwt.decode(token, settings.secret_key, algorithms=[ALGORITHM])
     except jwt.PyJWTError as exc:
-        raise TokenDecodeError("توکن نامعتبر یا منقضی شده") from exc
+        raise TokenDecodeError("Invalid or expired token") from exc

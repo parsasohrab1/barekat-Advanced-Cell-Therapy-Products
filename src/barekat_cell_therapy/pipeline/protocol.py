@@ -1,4 +1,4 @@
-"""تولید دستورالعمل تولید سلول‌های مهندسی‌شده."""
+"""Generate manufacturing instructions for engineered cells."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ def generate_protocol(
     vector_type: str = "lentiviral",
     target_cell_dose: float = 1e8,
 ) -> dict:
-    """ساخت پروتکل تولید برای سلول‌های CAR-T."""
+    """Build the manufacturing protocol for CAR-T cells."""
     transduction = {"lentiviral": 0.55, "retroviral": 0.45, "transposon": 0.35}.get(
         vector_type, 0.5
     )
@@ -23,38 +23,38 @@ def generate_protocol(
         {
             "step": 1,
             "name": "Leukapheresis",
-            "description": "جمع‌آوری سلول‌های T از بیمار",
+            "description": "Collect T cells from the patient",
             "duration_hours": 4,
         },
         {
             "step": 2,
             "name": "T-cell enrichment",
-            "description": "غنی‌سازی CD3+/CD28+ و فعال‌سازی",
+            "description": "CD3+/CD28+ enrichment and activation",
             "duration_hours": 24,
         },
         {
             "step": 3,
             "name": "Viral transduction",
-            "description": f"ترانسداکشن با ناقل {vector_type} حامل anti-{target_antigen} {car_version}",
+            "description": f"Transduction with {vector_type} vector carrying anti-{target_antigen} {car_version}",
             "duration_hours": 48,
             "expected_efficiency": transduction,
         },
         {
             "step": 4,
             "name": "Expansion",
-            "description": f"تکثیر تا دوز هدف {target_cell_dose:.0e} سلول",
+            "description": f"Expansion to target dose of {target_cell_dose:.0e} cells",
             "duration_hours": 168,
         },
         {
             "step": 5,
             "name": "QC release",
-            "description": "کنترل کیفیت: خلوص، زنده‌مانی، بیان CAR، استریلیتی",
+            "description": "Quality control: purity, viability, CAR expression, sterility",
             "duration_hours": 48,
         },
         {
             "step": 6,
             "name": "Formulation & cryopreservation",
-            "description": "فرمولاسیون نهایی و انجماد برای تزریق",
+            "description": "Final formulation and cryopreservation for infusion",
             "duration_hours": 6,
         },
     ]

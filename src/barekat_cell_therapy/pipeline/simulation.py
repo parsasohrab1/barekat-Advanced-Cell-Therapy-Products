@@ -1,4 +1,4 @@
-"""شبیه‌سازی پاسخ درمانی و عوارض جانبی."""
+"""Simulate therapeutic response and adverse effects."""
 
 from __future__ import annotations
 
@@ -47,7 +47,7 @@ def simulate_therapy(
     horizon_days: int | None = None,
     seed: int | None = None,
 ) -> dict:
-    """پیش‌بینی پاسخ، CRS و داده‌های طولی — با مدل آموزش‌دیده در صورت وجود."""
+    """Predict response, CRS and longitudinal data — with the trained model when available."""
     settings = get_settings()
     rng = np.random.default_rng(seed)
     horizon = horizon_days or settings.simulation_horizon_days

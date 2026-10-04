@@ -1,4 +1,4 @@
-"""توضیح‌پذیری مدل برای پزشک."""
+"""Model explainability for physicians."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ def explain_prediction(
     model_version: str = "v1",
     top_k: int = 5,
 ) -> ModelExplanation:
-    """استخراج contribution ویژگی‌ها برای یک پیش‌بینی."""
+    """Extract feature contributions for a single prediction."""
     import pandas as pd
 
     X = pd.DataFrame([[features.get(c, 0.0) for c in feature_columns]], columns=feature_columns)

@@ -1,4 +1,4 @@
-"""ارزیابی مدل پیش‌بینی پاسخ CAR-T."""
+"""Evaluate the CAR-T response prediction model."""
 
 from __future__ import annotations
 
@@ -30,7 +30,7 @@ def _wilson_ci(successes: int, n: int, z: float = 1.96) -> tuple[float, float]:
 
 
 def evaluate_response_model(df: pd.DataFrame, model=None, n_splits: int = 5) -> dict[str, Any]:
-    """ارزیابی با CV و فاصله اطمینان Wilson برای حساسیت/اختصاصیت."""
+    """Evaluate with CV and Wilson confidence interval for sensitivity/specificity."""
     X, y = prepare_features(df)
     if model is None:
         model = RandomForestClassifier(

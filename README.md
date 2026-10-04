@@ -1,18 +1,18 @@
 # barekat-Advanced-Cell-Therapy-Products
 
-پلتفرم طراحی و شبیه‌سازی درمان‌های سلولی شخصی‌سازی‌شده (CAR-T) — نسخه **0.2** (فاز Trust).
+Platform for designing and simulating personalized cell therapies (CAR-T) — version **0.2** (Trust phase).
 
-## قابلیت‌ها
+## Features
 
-- ثبت پروفایل HLA و بیان آنتی‌ژن‌های توموری
-- انتخاب هدف و طراحی ساختار CAR
-- شبیه‌سازی پاسخ با **مدل آموزش‌دیده**، CRS، سمیت عصبی و Explainability
-- روایت بالینی قابل‌فهم برای پزشک
-- ارزیابی مدل (CV، Se/Sp با CI) و رجیستری نسخه
+- Recording HLA profiles and tumor antigen expression
+- Target selection and CAR construct design
+- Response simulation with a **trained model**, CRS, neurotoxicity and Explainability
+- Clinical narrative understandable to physicians
+- Model evaluation (CV, Se/Sp with CI) and version registry
 - Auth (JWT) + RBAC + Audit trail
-- Prometheus metrics و داشبورد اپراتور
+- Prometheus metrics and operator dashboard
 
-## راه‌اندازی سریع
+## Quick Start
 
 ```bash
 cp .env.example .env
@@ -30,7 +30,7 @@ make api
 - Metrics: http://localhost:8000/metrics
 - MinIO: http://localhost:9001
 
-## مثال
+## Example
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/patients/ \
@@ -46,17 +46,17 @@ curl -X POST http://localhost:8000/api/v1/therapy/plan \
   -d '{"patient_id": "CT_0001", "dose_cells": 1e8}'
 ```
 
-## مستندات
+## Documentation
 
 - [Architecture & roadmap](docs/ARCHITECTURE.md)
 - [API](docs/API.md)
 - [Infrastructure](docs/INFRASTRUCTURE.md)
 
-## تکامل
+## Roadmap
 
-| فاز | وضعیت |
+| Phase | Status |
 |-----|--------|
-| ۱ Scaffold | ✅ |
-| ۲ Trust (مدل، explain، auth، audit، metrics) | ✅ |
-| ۳ Clinical UX | ⏳ |
-| ۴ Compliance سخت | ⏳ |
+| 1 Scaffold | ✅ |
+| 2 Trust (model, explain, auth, audit, metrics) | ✅ |
+| 3 Clinical UX | ⏳ |
+| 4 Strict Compliance | ⏳ |

@@ -1,4 +1,4 @@
-"""سرویس ذخیره‌سازی فایل‌ها در MinIO/S3."""
+"""File storage service on MinIO/S3."""
 
 import io
 import json
@@ -11,7 +11,7 @@ from barekat_cell_therapy.core.config import get_settings
 
 
 class StorageService:
-    """مدیریت پروفایل‌های ژنومی، طرح‌های CAR و پروتکل‌های تولید."""
+    """Manage genomic profiles, CAR designs and production protocols."""
 
     def __init__(self) -> None:
         settings = get_settings()

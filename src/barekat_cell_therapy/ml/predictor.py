@@ -1,4 +1,4 @@
-"""بارگذاری و inference مدل پیش‌بینی پاسخ."""
+"""Load and run inference of the response prediction model."""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ def features_from_patient(
     hla_profile: dict[str, int],
     car_version: str,
 ) -> dict[str, float]:
-    """ساخت دیکشنری ویژگی هم‌تراز با آموزش مدل."""
+    """Build a feature dictionary aligned with model training."""
     features: dict[str, float] = {}
     for ag in TUMOR_ANTIGENS:
         features[f"{ag}_Expression"] = float(antigen_expression.get(ag, 0.0))
@@ -43,7 +43,7 @@ def predict_response(
     hla_profile: dict[str, int],
     car_version: str,
 ) -> dict | None:
-    """پیش‌بینی پاسخ؛ None اگر مدل موجود نباشد (fallback به heuristic)."""
+    """Predict response; None if the model is unavailable (fallback to heuristic)."""
     bundle = load_response_model()
     if bundle is None:
         return None

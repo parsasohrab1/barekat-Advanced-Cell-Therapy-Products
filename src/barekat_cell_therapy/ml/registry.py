@@ -1,4 +1,4 @@
-"""رجیستری نسخه‌های مدل پاسخ درمانی."""
+"""Registry of therapeutic response model versions."""
 
 from __future__ import annotations
 

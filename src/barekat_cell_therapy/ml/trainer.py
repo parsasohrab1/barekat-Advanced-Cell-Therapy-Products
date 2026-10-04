@@ -1,4 +1,4 @@
-"""آموزش مدل پیش‌بینی پاسخ درمان."""
+"""Train the therapeutic response prediction model."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-"""سرویس ثبت رویدادهای حسابرسی."""
+"""Audit event logging service."""
 
 from __future__ import annotations
 

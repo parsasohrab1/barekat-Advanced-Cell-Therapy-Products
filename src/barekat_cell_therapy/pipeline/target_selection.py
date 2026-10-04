@@ -1,10 +1,10 @@
-"""انتخاب آنتی‌ژن هدف بر اساس بیان توموری."""
+"""Select the target antigen based on tumor expression."""
 
 from barekat_cell_therapy.core.config import get_settings
 
 
 def select_best_target(antigen_expression: dict[str, float]) -> str | None:
-    """بازگرداندن آنتی‌ژن با بالاترین بیان بالای آستانه حداقل."""
+    """Return the antigen with the highest expression above the minimum threshold."""
     settings = get_settings()
     if not antigen_expression:
         return None

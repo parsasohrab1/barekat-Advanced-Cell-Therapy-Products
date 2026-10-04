@@ -1,7 +1,7 @@
 [project]
 name = "barekat-cell-therapy"
 version = "0.2.0"
-description = "پلتفرم طراحی و شبیه‌سازی درمان‌های سلولی شخصی‌سازی‌شده (CAR-T)"
+description = "Platform for designing and simulating personalized cell therapies (CAR-T)"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

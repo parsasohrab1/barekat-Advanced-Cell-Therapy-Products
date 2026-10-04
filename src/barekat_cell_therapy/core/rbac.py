@@ -1,4 +1,4 @@
-"""RBAC ساده برای نقش‌های بالینی و عملیاتی."""
+"""Simple RBAC for clinical and operational roles."""
 
 from __future__ import annotations
 
@@ -24,13 +24,13 @@ def get_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer),
     db: Session = Depends(get_db),
 ) -> User | None:
-    """اختیاری: اگر توکن نباشد None برمی‌گرداند (حالت توسعه)."""
+    """Optional: returns None if there is no token (development mode)."""
     from barekat_cell_therapy.core.config import get_settings
 
     settings = get_settings()
     if credentials is None:
         if settings.auth_required:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="احراز هویت لازم است")
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
         return None
     try:
         payload = verify_access_token(credentials.credentials)
@@ -39,7 +39,7 @@ def get_current_user(
 
     user = db.query(User).filter(User.user_id == payload["sub"]).first()
     if user is None or not user.is_active:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="کاربر یافت نشد")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
     return user
 
 
@@ -50,9 +50,9 @@ def require_role(min_role: str):
         if user is None and not get_settings().auth_required:
             return None
         if user is None:
-            raise HTTPException(status_code=401, detail="احراز هویت لازم است")
+            raise HTTPException(status_code=401, detail="Authentication required")
         if ROLE_HIERARCHY.get(user.role, 0) < ROLE_HIERARCHY.get(min_role, 99):
-            raise HTTPException(status_code=403, detail="دسترسی کافی نیست")
+            raise HTTPException(status_code=403, detail="Insufficient permissions")
         return user
 
     return _dep

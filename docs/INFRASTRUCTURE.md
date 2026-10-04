@@ -38,25 +38,25 @@ uvicorn barekat_cell_therapy.api.main:app --reload
 
 | Service | Port | Role |
 |---------|------|------|
-| PostgreSQL | 5432 | بیماران، طرح‌های CAR، شبیه‌سازی‌ها |
-| Redis | 6379 | صف Celery و کش |
-| MinIO | 9000/9001 | پروفایل‌ها، طرح‌ها، پروتکل‌ها |
-| API | 8000 | REST API درمان سلولی |
-| Worker | — | تولید داده، آموزش مدل، batch simulation |
+| PostgreSQL | 5432 | Patients, CAR designs, simulations |
+| Redis | 6379 | Celery queue and cache |
+| MinIO | 9000/9001 | Profiles, designs, protocols |
+| API | 8000 | Cell therapy REST API |
+| Worker | — | Data generation, model training, batch simulation |
 
 ## API Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/v1/health` | بررسی سلامت سرویس‌ها |
-| POST | `/api/v1/patients/` | ثبت پروفایل بیمار |
-| GET | `/api/v1/patients/{id}` | جزئیات بیمار |
-| POST | `/api/v1/designs/` | طراحی CAR |
-| GET | `/api/v1/designs/{id}` | جزئیات طرح |
-| POST | `/api/v1/simulations/` | شبیه‌سازی پاسخ و ایمنی |
-| POST | `/api/v1/protocols/` | تولید پروتکل ساخت سلول |
-| POST | `/api/v1/therapy/plan` | طرح کامل: design + simulate + protocol |
-| POST | `/api/v1/simulations/batch` | شبیه‌سازی دسته‌ای |
+| GET | `/api/v1/health` | Service health check |
+| POST | `/api/v1/patients/` | Register patient profile |
+| GET | `/api/v1/patients/{id}` | Patient details |
+| POST | `/api/v1/designs/` | CAR design |
+| GET | `/api/v1/designs/{id}` | Design details |
+| POST | `/api/v1/simulations/` | Response and safety simulation |
+| POST | `/api/v1/protocols/` | Generate cell manufacturing protocol |
+| POST | `/api/v1/therapy/plan` | Full plan: design + simulate + protocol |
+| POST | `/api/v1/simulations/batch` | Batch simulation |
 
 ## Pipeline
 
@@ -66,10 +66,10 @@ Patient Profile → Target Selection → CAR Design → Response Simulation → 
 
 | Stage | Module | Description |
 |-------|--------|-------------|
-| Target Selection | `pipeline/target_selection.py` | انتخاب بهترین آنتی‌ژن توموری |
-| CAR Design | `pipeline/car_design.py` | ساختار گیرنده کایمریک |
-| Simulation | `pipeline/simulation.py` | پیش‌بینی پاسخ، CRS، سمیت عصبی |
-| Protocol | `pipeline/protocol.py` | دستورالعمل تولید سلول |
+| Target Selection | `pipeline/target_selection.py` | Select the best tumor antigen |
+| CAR Design | `pipeline/car_design.py` | Chimeric receptor structure |
+| Simulation | `pipeline/simulation.py` | Response, CRS, neurotoxicity prediction |
+| Protocol | `pipeline/protocol.py` | Cell manufacturing instructions |
 
 ## Project Structure
 
@@ -78,13 +78,13 @@ Patient Profile → Target Selection → CAR Design → Response Simulation → 
 ├── Dockerfile
 ├── src/barekat_cell_therapy/
 │   ├── api/                 # FastAPI endpoints
-│   ├── core/                # تنظیمات، DB، storage
-│   ├── data/                # تولید داده سنتتیک
-│   ├── ml/                  # مدل پیش‌بینی پاسخ
+│   ├── core/                # settings, DB, storage
+│   ├── data/                # synthetic data generation
+│   ├── ml/                  # response prediction model
 │   ├── models/              # ORM
 │   ├── pipeline/            # target → design → simulate → protocol
 │   ├── schemas/             # Pydantic
-│   ├── services/            # منطق دامنه
+│   ├── services/            # domain logic
 │   └── tasks/               # Celery
 ├── scripts/
 ├── data/
@@ -95,18 +95,18 @@ Patient Profile → Target Selection → CAR Design → Response Simulation → 
 ## Makefile Commands
 
 ```bash
-make setup          # نصب وابستگی‌ها
-make infra          # راه‌اندازی Docker
-make generate-data  # تولید داده سنتتیک
-make train          # آموزش مدل
-make evaluate       # ارزیابی مدل
-make api            # اجرای API
+make setup          # install dependencies
+make infra          # start Docker
+make generate-data  # generate synthetic data
+make train          # train the model
+make evaluate       # evaluate the model
+make api            # run the API
 make worker         # Celery worker
-make migrate        # مهاجرت پایگاه داده
-make test           # اجرای تست‌ها
+make migrate        # database migration
+make test           # run tests
 ```
 
 ## Maturity (v0.2)
 
-مدل آموزش‌دیده در inference، explainability، ارزیابی، JWT/audit، `/metrics` و داشبورد `/dashboard/` فعال است.
-جزئیات: [ARCHITECTURE.md](ARCHITECTURE.md) و [API.md](API.md).
+The trained model in inference, explainability, evaluation, JWT/audit, `/metrics` and the `/dashboard/` dashboard are active.
+Details: [ARCHITECTURE.md](ARCHITECTURE.md) and [API.md](API.md).

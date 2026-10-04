@@ -1,4 +1,4 @@
-"""متریک‌های Prometheus."""
+"""Prometheus metrics."""
 
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, generate_latest
 

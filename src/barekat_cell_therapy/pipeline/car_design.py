@@ -1,4 +1,4 @@
-"""طراحی ساختار CAR برای بیمار."""
+"""Design the CAR structure for a patient."""
 
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ def design_car(
     car_version: str | None = None,
     costimulatory_domains: list[str] | None = None,
 ) -> dict:
-    """ساخت طرح پیشنهادی CAR."""
+    """Build a proposed CAR design."""
     settings = get_settings()
     version = car_version or settings.default_car_version
     domains = costimulatory_domains or ["CD28", "4-1BB"]

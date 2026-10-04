@@ -2,7 +2,7 @@
 
 ## Overview
 
-پلتفرم طراحی و شبیه‌سازی درمان سلولی شخصی‌سازی‌شده (CAR-T):
+Platform for designing and simulating personalized cell therapy (CAR-T):
 
 ```
 Patient Omics → Target Selection → CAR Design → ML Simulation → Protocol → Clinician Narrative
@@ -12,45 +12,45 @@ Patient Omics → Target Selection → CAR Design → ML Simulation → Protocol
 
 | Layer | Tech | Role |
 |-------|------|------|
-| API | FastAPI | REST برای بیمار، طرح، شبیه‌سازی، ML، Auth |
-| Worker | Celery + Redis | batch simulation، train، generate |
+| API | FastAPI | REST for patient, design, simulation, ML, Auth |
+| Worker | Celery + Redis | Batch simulation, train, generate |
 | DB | PostgreSQL | patients, designs, simulations, users, audit |
-| Object store | MinIO | پروفایل‌ها، طرح‌ها، نتایج |
-| ML | scikit-learn RF | پیش‌بینی پاسخ + feature importance |
+| Object store | MinIO | Profiles, designs, results |
+| ML | scikit-learn RF | Response prediction + feature importance |
 
 ## Domain Model
 
-- **Patient**: HLA + بیان آنتی‌ژن توموری
-- **CarDesign**: ساختار گیرنده (scFv, costim, CD3ζ)
-- **Simulation**: احتمال پاسخ، CRS، سمیت عصبی، explainability
-- **ProductionProtocol**: دستورالعمل تولید سلول
-- **User / AuditLog**: هویت و ردیابی عملیات
+- **Patient**: HLA + tumor antigen expression
+- **CarDesign**: Receptor structure (scFv, costim, CD3ζ)
+- **Simulation**: Response probability, CRS, neurotoxicity, explainability
+- **ProductionProtocol**: Cell manufacturing instructions
+- **User / AuditLog**: Identity and operation tracing
 
 ## Inference
 
-1. اگر `data/models/response_predictor_v1.pkl` موجود باشد → inference با مدل + explainability واقعی
-2. در غیر این صورت → heuristic با برچسب `inference_source=heuristic`
+1. If `data/models/response_predictor_v1.pkl` exists → inference with the model + real explainability
+2. Otherwise → heuristic labeled `inference_source=heuristic`
 
-## نقشه راه تکامل
+## Evolution Roadmap
 
-| فاز | وضعیت | محتوا |
+| Phase | Status | Content |
 |-----|--------|--------|
-| ۱ — Scaffold | ✅ | Docker، API، pipeline، داده سنتتیک |
-| ۲ — Trust | ✅ | مدل در serve، explainability، eval، auth، audit، metrics، dashboard |
-| ۳ — Clinical UX | ⏳ | UI غنی‌تر، PDF پروتکل، HITL |
-| ۴ — Compliance | ⏳ | PHI encryption، GDPR delete، Part 11 سخت‌گیرانه‌تر |
-| ۵ — Platform | ⏳ | MLflow، K8s، drift monitoring |
+| 1 — Scaffold | ✅ | Docker, API, pipeline, synthetic data |
+| 2 — Trust | ✅ | Model in serve, explainability, eval, auth, audit, metrics, dashboard |
+| 3 — Clinical UX | ⏳ | Richer UI, protocol PDF, HITL |
+| 4 — Compliance | ⏳ | PHI encryption, GDPR delete, stricter Part 11 |
+| 5 — Platform | ⏳ | MLflow, K8s, drift monitoring |
 
-## وضعیت فعلی (پیوست)
+## Current Status (Appendix)
 
-| قابلیت | وضعیت |
+| Capability | Status |
 |--------|--------|
-| ثبت بیمار / طراحی CAR / شبیه‌سازی / پروتکل | ✅ |
-| مدل آموزش‌دیده در inference | ✅ |
-| Explainability + روایت بالینی | ✅ |
+| Patient registration / CAR design / simulation / protocol | ✅ |
+| Trained model in inference | ✅ |
+| Explainability + clinical narrative | ✅ |
 | Evaluation + model registry | ✅ |
 | JWT Auth + RBAC + Audit | ✅ |
 | Prometheus `/metrics` | ✅ |
-| Dashboard اپراتور | ✅ (minimal) |
-| Frontend React کامل | ❌ |
+| Operator dashboard | ✅ (minimal) |
+| Full React frontend | ❌ |
 | MLflow / K8s | ❌ |

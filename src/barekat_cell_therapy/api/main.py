@@ -29,7 +29,7 @@ def create_app() -> FastAPI:
 
     app = FastAPI(
         title="barekat-Advanced-Cell-Therapy-Products",
-        description="پلتفرم طراحی و شبیه‌سازی درمان‌های سلولی شخصی‌سازی‌شده (CAR-T)",
+        description="Platform for designing and simulating personalized cell therapies (CAR-T)",
         version=__version__,
         lifespan=lifespan,
         docs_url="/docs" if settings.debug else None,

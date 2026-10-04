@@ -1,4 +1,4 @@
-"""تنظیمات مرکزی پلتفرم درمان سلولی."""
+"""Central settings of the cell therapy platform."""
 
 from functools import lru_cache
 from typing import Literal

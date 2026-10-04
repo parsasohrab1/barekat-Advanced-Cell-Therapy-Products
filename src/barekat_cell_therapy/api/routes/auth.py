@@ -18,7 +18,7 @@ router = APIRouter()
 @router.post("/auth/register", response_model=UserResponse, status_code=201)
 def register(payload: UserRegister, db: Session = Depends(get_db)) -> UserResponse:
     if db.query(User).filter(User.email == payload.email).first():
-        raise HTTPException(status_code=409, detail="ایمیل قبلاً ثبت شده")
+        raise HTTPException(status_code=409, detail="Email already registered")
     user = User(
         user_id=f"USR_{uuid.uuid4().hex[:10].upper()}",
         email=payload.email,
@@ -43,7 +43,7 @@ def register(payload: UserRegister, db: Session = Depends(get_db)) -> UserRespon
 def login(payload: UserLogin, db: Session = Depends(get_db)) -> TokenResponse:
     user = db.query(User).filter(User.email == payload.email).first()
     if user is None or not verify_password(payload.password, user.hashed_password):
-        raise HTTPException(status_code=401, detail="ایمیل یا رمز عبور نادرست")
+        raise HTTPException(status_code=401, detail="Incorrect email or password")
     token = create_access_token(user.user_id, user.role, user.email)
     write_audit(db, "user.login", "user", user.user_id, actor_id=user.user_id)
     return TokenResponse(access_token=token, role=user.role, user_id=user.user_id)
@@ -52,7 +52,7 @@ def login(payload: UserLogin, db: Session = Depends(get_db)) -> TokenResponse:
 @router.get("/auth/me", response_model=UserResponse)
 def me(user: User | None = Depends(get_current_user)) -> UserResponse:
     if user is None:
-        raise HTTPException(status_code=401, detail="احراز هویت لازم است")
+        raise HTTPException(status_code=401, detail="Authentication required")
     return UserResponse(
         user_id=user.user_id,
         email=user.email,

@@ -1,4 +1,4 @@
-"""سرویس‌های دامنه: بیمار، طراحی CAR، شبیه‌سازی، پروتکل."""
+"""Domain services: patient, CAR design, simulation, protocol."""
 
 from __future__ import annotations
 
