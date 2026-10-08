@@ -35,7 +35,9 @@ def generate_protocol(
         {
             "step": 3,
             "name": "Viral transduction",
-            "description": f"Transduction with {vector_type} vector carrying anti-{target_antigen} {car_version}",
+            "description": (
+                f"Transduction with {vector_type} vector carrying anti-{target_antigen} {car_version}"
+            ),
             "duration_hours": 48,
             "expected_efficiency": transduction,
         },

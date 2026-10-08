@@ -3,6 +3,7 @@
 from functools import lru_cache
 from typing import Literal
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -34,6 +35,9 @@ class Settings(BaseSettings):
     s3_secret_key: str = "barekatsecret"
     s3_bucket: str = "barekat-cell-therapy"
     s3_region: str = "us-east-1"
+    # "s3" tries MinIO/S3 and falls back to local disk; "local" never touches the network
+    storage_backend: Literal["s3", "local"] = "s3"
+    local_storage_dir: str = "data/uploads"
 
     # Pipeline
     pipeline_mode: Literal["simulated", "production"] = "simulated"
@@ -66,6 +70,16 @@ class Settings(BaseSettings):
     metrics_enabled: bool = True
     log_json: bool = False
     log_level: str = "INFO"
+
+    @model_validator(mode="after")
+    def _production_guards(self) -> "Settings":
+        """Refuse to boot a production deployment with development security defaults."""
+        if self.app_env == "production":
+            if "change-me" in self.secret_key or len(self.secret_key) < 32:
+                raise ValueError("SECRET_KEY must be a strong non-default value in production")
+            if not self.auth_required:
+                raise ValueError("AUTH_REQUIRED must be true in production")
+        return self
 
     @property
     def target_antigens(self) -> list[str]:

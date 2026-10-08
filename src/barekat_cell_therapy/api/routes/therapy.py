@@ -6,7 +6,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from barekat_cell_therapy.core.database import get_db
+from barekat_cell_therapy.core.rbac import require_role
 from barekat_cell_therapy.models.patient import BatchJob, Simulation
+from barekat_cell_therapy.models.user import User
 from barekat_cell_therapy.schemas import (
     BatchJobResponse,
     BatchSimulateRequest,
@@ -24,16 +26,22 @@ router = APIRouter()
 
 @router.post("/simulations/", response_model=SimulationResponse, status_code=201)
 def create_simulation(
-    payload: SimulationRequest, db: Session = Depends(get_db)
+    payload: SimulationRequest,
+    db: Session = Depends(get_db),
+    user: User | None = Depends(require_role("clinician")),
 ) -> SimulationResponse:
     try:
-        return therapy.run_simulation(db, payload)
+        return therapy.run_simulation(db, payload, actor_id=user.user_id if user else None)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
 @router.get("/simulations/{simulation_id}", response_model=SimulationResponse)
-def get_simulation(simulation_id: str, db: Session = Depends(get_db)) -> SimulationResponse:
+def get_simulation(
+    simulation_id: str,
+    db: Session = Depends(get_db),
+    _: User | None = Depends(require_role("viewer")),
+) -> SimulationResponse:
     row = db.query(Simulation).filter(Simulation.simulation_id == simulation_id).first()
     if row is None:
         raise HTTPException(status_code=404, detail="Simulation not found")
@@ -41,26 +49,34 @@ def get_simulation(simulation_id: str, db: Session = Depends(get_db)) -> Simulat
 
 
 @router.post("/protocols/", response_model=ProtocolResponse, status_code=201)
-def create_protocol(payload: ProtocolRequest, db: Session = Depends(get_db)) -> ProtocolResponse:
+def create_protocol(
+    payload: ProtocolRequest,
+    db: Session = Depends(get_db),
+    user: User | None = Depends(require_role("clinician")),
+) -> ProtocolResponse:
     try:
-        return therapy.create_protocol(db, payload)
+        return therapy.create_protocol(db, payload, actor_id=user.user_id if user else None)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
 @router.post("/therapy/plan", response_model=TherapyPlanResponse, status_code=201)
 def create_therapy_plan(
-    payload: TherapyPlanRequest, db: Session = Depends(get_db)
+    payload: TherapyPlanRequest,
+    db: Session = Depends(get_db),
+    user: User | None = Depends(require_role("clinician")),
 ) -> TherapyPlanResponse:
     try:
-        return therapy.create_therapy_plan(db, payload)
+        return therapy.create_therapy_plan(db, payload, actor_id=user.user_id if user else None)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
 @router.post("/simulations/batch", response_model=BatchJobResponse, status_code=202)
 def batch_simulate(
-    payload: BatchSimulateRequest, db: Session = Depends(get_db)
+    payload: BatchSimulateRequest,
+    db: Session = Depends(get_db),
+    _: User | None = Depends(require_role("clinician")),
 ) -> BatchJobResponse:
     job_id = str(uuid.uuid4())
     job = BatchJob(
@@ -98,7 +114,11 @@ def batch_simulate(
 
 
 @router.get("/jobs/{job_id}", response_model=BatchJobResponse)
-def get_job(job_id: str, db: Session = Depends(get_db)) -> BatchJobResponse:
+def get_job(
+    job_id: str,
+    db: Session = Depends(get_db),
+    _: User | None = Depends(require_role("viewer")),
+) -> BatchJobResponse:
     import json
 
     job = db.query(BatchJob).filter(BatchJob.job_id == job_id).first()

@@ -1,4 +1,4 @@
-.PHONY: setup infra generate-data train evaluate api worker test lint migrate
+.PHONY: validate-trl5 setup infra generate-data train evaluate api worker test lint migrate
 
 setup:
 	pip install -e ".[dev]"
@@ -29,3 +29,6 @@ test:
 
 lint:
 	ruff check src tests scripts
+
+validate-trl5:
+	python scripts/validate_trl5.py

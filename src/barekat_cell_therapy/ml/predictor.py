@@ -6,12 +6,11 @@ from functools import lru_cache
 from pathlib import Path
 
 import joblib
-import numpy as np
 import pandas as pd
 
 from barekat_cell_therapy.core.config import get_settings
 from barekat_cell_therapy.data.synthetic import CAR_EFFICIENCY, TUMOR_ANTIGENS
-from barekat_cell_therapy.ml.trainer import FEATURE_COLUMNS
+from barekat_cell_therapy.ml.trainer import FEATURE_COLUMNS, add_derived_features
 
 
 def features_from_patient(
@@ -26,6 +25,9 @@ def features_from_patient(
     features["car_efficacy"] = float(CAR_EFFICIENCY.get(car_version, 0.7))
     features["HLA_A0201"] = float(hla_profile.get("HLA-A*02:01", 0))
     features["HLA_DRB10101"] = float(hla_profile.get("HLA-DRB1*01:01", 0))
+    derived = add_derived_features(pd.DataFrame([features])).iloc[0]
+    features["max_expression"] = float(derived["max_expression"])
+    features["efficacy_x_max_expr"] = float(derived["efficacy_x_max_expr"])
     return features
 
 

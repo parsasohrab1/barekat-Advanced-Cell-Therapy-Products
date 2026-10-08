@@ -37,6 +37,7 @@ Patient Omics → Target Selection → CAR Design → ML Simulation → Protocol
 |-----|--------|--------|
 | 1 — Scaffold | ✅ | Docker, API, pipeline, synthetic data |
 | 2 — Trust | ✅ | Model in serve, explainability, eval, auth, audit, metrics, dashboard |
+| 2.5 — TRL 5 | ✅ | Validation harness, RBAC on all endpoints, full audit, pre-specified acceptance criteria |
 | 3 — Clinical UX | ⏳ | Richer UI, protocol PDF, HITL |
 | 4 — Compliance | ⏳ | PHI encryption, GDPR delete, stricter Part 11 |
 | 5 — Platform | ⏳ | MLflow, K8s, drift monitoring |

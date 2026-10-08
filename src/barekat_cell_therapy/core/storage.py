@@ -16,7 +16,9 @@ class StorageService:
     def __init__(self) -> None:
         settings = get_settings()
         self.bucket = settings.s3_bucket
-        self.client = boto3.client(
+        self.local_only = settings.storage_backend == "local"
+        self.local_dir = Path(settings.local_storage_dir)
+        self.client = None if self.local_only else boto3.client(
             "s3",
             endpoint_url=settings.s3_endpoint,
             aws_access_key_id=settings.s3_access_key,
@@ -26,6 +28,8 @@ class StorageService:
         )
 
     def ensure_bucket(self) -> None:
+        if self.client is None:
+            return
         try:
             self.client.head_bucket(Bucket=self.bucket)
         except Exception:
@@ -40,6 +44,8 @@ class StorageService:
         object_key: str,
         content_type: str = "application/octet-stream",
     ) -> str:
+        if self.local_only:
+            return self._write_local(data, object_key)
         try:
             self.ensure_bucket()
             self.client.upload_fileobj(
@@ -50,10 +56,13 @@ class StorageService:
             )
             return f"s3://{self.bucket}/{object_key}"
         except Exception:
-            local_path = Path("data/uploads") / object_key
-            local_path.parent.mkdir(parents=True, exist_ok=True)
-            local_path.write_bytes(data)
-            return str(local_path.resolve())
+            return self._write_local(data, object_key)
+
+    def _write_local(self, data: bytes, object_key: str) -> str:
+        local_path = self.local_dir / object_key
+        local_path.parent.mkdir(parents=True, exist_ok=True)
+        local_path.write_bytes(data)
+        return str(local_path.resolve())
 
     def upload_json(self, payload: dict | list, object_key: str) -> str:
         return self.upload_bytes(
@@ -63,13 +72,14 @@ class StorageService:
         )
 
     def download_bytes(self, object_key: str) -> bytes:
+        if self.local_only:
+            return (self.local_dir / object_key).read_bytes()
         try:
             buffer = io.BytesIO()
             self.client.download_fileobj(self.bucket, object_key, buffer)
             return buffer.getvalue()
         except Exception:
-            local_path = Path("data/uploads") / object_key
-            return local_path.read_bytes()
+            return (self.local_dir / object_key).read_bytes()
 
     def download_json(self, object_key: str) -> dict | list:
         return json.loads(self.download_bytes(object_key).decode("utf-8"))

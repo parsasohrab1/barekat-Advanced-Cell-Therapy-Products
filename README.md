@@ -1,6 +1,6 @@
 # barekat-Advanced-Cell-Therapy-Products
 
-Platform for designing and simulating personalized cell therapies (CAR-T) — version **0.2** (Trust phase).
+Platform for designing and simulating personalized cell therapies (CAR-T) — version **0.3** — **TRL 5** (integrated system validated in a simulated operational environment; [evidence](docs/TRL.md)).
 
 ## Features
 
@@ -58,5 +58,14 @@ curl -X POST http://localhost:8000/api/v1/therapy/plan \
 |-----|--------|
 | 1 Scaffold | ✅ |
 | 2 Trust (model, explain, auth, audit, metrics) | ✅ |
+| 2.5 TRL 5 (integrated validation, RBAC, full audit) | ✅ |
 | 3 Clinical UX | ⏳ |
 | 4 Strict Compliance | ⏳ |
+
+## TRL 5 Validation
+
+```bash
+make validate-trl5   # report: docs/validation/TRL5_REPORT.md
+```
+
+Note: all cohorts are synthetic; no clinical validation has been performed (details and the path to TRL 6 in [docs/TRL.md](docs/TRL.md)).

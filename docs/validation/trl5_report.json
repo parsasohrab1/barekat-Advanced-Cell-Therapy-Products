@@ -1,0 +1,299 @@
+{
+  "version": "0.3.0",
+  "generated_at": "2026-10-07T21:04:44+00:00",
+  "model": {
+    "development_cohort": {
+      "n_patients": 1000,
+      "seed": 42
+    },
+    "internal_holdout": {
+      "accuracy": 0.64,
+      "f1_score": 0.6591,
+      "roc_auc": 0.6836
+    },
+    "cohorts": {
+      "same_distribution": {
+        "n": 1000,
+        "prevalence": 0.54,
+        "auc": 0.6792,
+        "oracle_auc": 0.7023,
+        "auc_over_oracle": 0.9671,
+        "ece": 0.0486,
+        "brier": 0.2267,
+        "brier_minus_baseline": -0.0217,
+        "sensitivity": {
+          "value": 0.5741,
+          "ci": [
+            0.532,
+            0.6151
+          ]
+        },
+        "specificity": {
+          "value": 0.6804,
+          "ci": [
+            0.6365,
+            0.7214
+          ]
+        },
+        "balanced_accuracy": 0.6273,
+        "subgroup_auc": {
+          "CARv1": 0.6803,
+          "CARv2": 0.6789,
+          "CARv3": 0.6669
+        },
+        "worst_subgroup_auc": 0.6669
+      },
+      "shifted_site": {
+        "n": 1000,
+        "prevalence": 0.423,
+        "auc": 0.6183,
+        "oracle_auc": 0.6557,
+        "auc_over_oracle": 0.943,
+        "ece": 0.0394,
+        "brier": 0.2325,
+        "brier_minus_baseline": -0.0115,
+        "sensitivity": {
+          "value": 0.2813,
+          "ci": [
+            0.2406,
+            0.326
+          ]
+        },
+        "specificity": {
+          "value": 0.8804,
+          "ci": [
+            0.8514,
+            0.9044
+          ]
+        },
+        "balanced_accuracy": 0.5809,
+        "subgroup_auc": {
+          "CARv1": 0.6139,
+          "CARv2": 0.5802,
+          "CARv3": 0.6534
+        },
+        "worst_subgroup_auc": 0.5802
+      }
+    },
+    "robustness": {
+      "baseline_auc": 0.6183,
+      "noise_auc_drop": -0.0044,
+      "missing_auc_drop": 0.0057,
+      "invalid_predictions": 0,
+      "prediction_mismatches": 0
+    }
+  },
+  "system": {
+    "rbac_checks": {
+      "anonymous_blocked": true,
+      "self_register_downgraded": true,
+      "viewer_cannot_write": true,
+      "clinician_can_write": true,
+      "viewer_can_read": true,
+      "clinician_blocked_from_audit": true,
+      "scientist_reads_audit": true,
+      "bad_token_rejected": true,
+      "duplicate_patient_409": true,
+      "unknown_patient_404": true,
+      "invalid_payload_422": true
+    },
+    "rbac_pass_fraction": 1.0,
+    "n_plans": 30,
+    "success_rate": 1.0,
+    "ml_model_fraction": 1.0,
+    "latency_p50_s": 0.3089,
+    "latency_p95_s": 0.4735,
+    "concurrent_success_rate": 1.0,
+    "audit_actions": {
+      "design.create": 54,
+      "patient.create": 31,
+      "patient.read": 1,
+      "protocol.create": 54,
+      "simulation.run": 54,
+      "user.login": 4,
+      "user.register": 4
+    },
+    "audit_events_per_plan": 3.0
+  },
+  "evaluation": {
+    "criteria": [
+      {
+        "scope": "same_distribution",
+        "id": "M1",
+        "description": "ROC-AUC on independent cohort (absolute floor)",
+        "rule": ">= 0.6",
+        "measured": 0.6792,
+        "pass": true
+      },
+      {
+        "scope": "same_distribution",
+        "id": "M2",
+        "description": "AUC / oracle AUC (ceiling set by outcome noise)",
+        "rule": ">= 0.9",
+        "measured": 0.9671,
+        "pass": true
+      },
+      {
+        "scope": "same_distribution",
+        "id": "M3",
+        "description": "Expected calibration error",
+        "rule": "<= 0.1",
+        "measured": 0.0486,
+        "pass": true
+      },
+      {
+        "scope": "same_distribution",
+        "id": "M4",
+        "description": "Brier score minus prevalence baseline",
+        "rule": "<= 0.0",
+        "measured": -0.0217,
+        "pass": true
+      },
+      {
+        "scope": "same_distribution",
+        "id": "M5",
+        "description": "Balanced accuracy at 0.5 cut-off",
+        "rule": ">= 0.55",
+        "measured": 0.6273,
+        "pass": true
+      },
+      {
+        "scope": "same_distribution",
+        "id": "M6",
+        "description": "Worst CAR-type subgroup AUC",
+        "rule": ">= 0.58",
+        "measured": 0.6669,
+        "pass": true
+      },
+      {
+        "scope": "shifted_site",
+        "id": "M1",
+        "description": "ROC-AUC on independent cohort (absolute floor)",
+        "rule": ">= 0.6",
+        "measured": 0.6183,
+        "pass": true
+      },
+      {
+        "scope": "shifted_site",
+        "id": "M2",
+        "description": "AUC / oracle AUC (ceiling set by outcome noise)",
+        "rule": ">= 0.9",
+        "measured": 0.943,
+        "pass": true
+      },
+      {
+        "scope": "shifted_site",
+        "id": "M3",
+        "description": "Expected calibration error",
+        "rule": "<= 0.1",
+        "measured": 0.0394,
+        "pass": true
+      },
+      {
+        "scope": "shifted_site",
+        "id": "M4",
+        "description": "Brier score minus prevalence baseline",
+        "rule": "<= 0.0",
+        "measured": -0.0115,
+        "pass": true
+      },
+      {
+        "scope": "shifted_site",
+        "id": "M5",
+        "description": "Balanced accuracy at 0.5 cut-off",
+        "rule": ">= 0.55",
+        "measured": 0.5809,
+        "pass": true
+      },
+      {
+        "scope": "shifted_site",
+        "id": "M6",
+        "description": "Worst CAR-type subgroup AUC",
+        "rule": ">= 0.58",
+        "measured": 0.5802,
+        "pass": true
+      },
+      {
+        "scope": "robustness",
+        "id": "R1",
+        "description": "AUC drop under 10% multiplicative input noise",
+        "rule": "<= 0.05",
+        "measured": -0.0044,
+        "pass": true
+      },
+      {
+        "scope": "robustness",
+        "id": "R2",
+        "description": "AUC drop with 20% antigen values missing",
+        "rule": "<= 0.08",
+        "measured": 0.0057,
+        "pass": true
+      },
+      {
+        "scope": "robustness",
+        "id": "R3",
+        "description": "Invalid (non-finite / out-of-range) predictions",
+        "rule": "<= 0.0",
+        "measured": 0.0,
+        "pass": true
+      },
+      {
+        "scope": "robustness",
+        "id": "R4",
+        "description": "Prediction mismatches between two seeded trainings",
+        "rule": "<= 0.0",
+        "measured": 0.0,
+        "pass": true
+      },
+      {
+        "scope": "system",
+        "id": "S1",
+        "description": "End-to-end plan success rate",
+        "rule": ">= 1.0",
+        "measured": 1.0,
+        "pass": true
+      },
+      {
+        "scope": "system",
+        "id": "S2",
+        "description": "p95 latency of /therapy/plan (seconds)",
+        "rule": "<= 2.0",
+        "measured": 0.4735,
+        "pass": true
+      },
+      {
+        "scope": "system",
+        "id": "S3",
+        "description": "Audit events per plan (design+simulation+protocol)",
+        "rule": ">= 3.0",
+        "measured": 3.0,
+        "pass": true
+      },
+      {
+        "scope": "system",
+        "id": "S4",
+        "description": "RBAC matrix checks passed (fraction)",
+        "rule": ">= 1.0",
+        "measured": 1.0,
+        "pass": true
+      },
+      {
+        "scope": "system",
+        "id": "S5",
+        "description": "Plans served by trained model (fraction)",
+        "rule": ">= 1.0",
+        "measured": 1.0,
+        "pass": true
+      },
+      {
+        "scope": "system",
+        "id": "S6",
+        "description": "Concurrent-request success rate",
+        "rule": ">= 1.0",
+        "measured": 1.0,
+        "pass": true
+      }
+    ],
+    "all_passed": true
+  }
+}

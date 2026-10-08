@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 
 from barekat_cell_therapy.core.storage import get_storage
+from barekat_cell_therapy.services.audit import write_audit
 from barekat_cell_therapy.models.patient import CarDesign, Patient, ProductionProtocol, Simulation
 from barekat_cell_therapy.pipeline.car_design import design_car
 from barekat_cell_therapy.pipeline.protocol import generate_protocol
@@ -54,7 +55,9 @@ def _antigen_dict(items: list[AntigenExpression]) -> dict[str, float]:
     return {a.antigen: a.expression_pct for a in items}
 
 
-def create_patient(db: Session, payload: PatientCreate) -> PatientResponse:
+def create_patient(
+    db: Session, payload: PatientCreate, actor_id: str | None = None
+) -> PatientResponse:
     antigens = _antigen_dict(payload.antigen_expression)
     best = select_best_target(antigens) if antigens else None
 
@@ -92,6 +95,7 @@ def create_patient(db: Session, payload: PatientCreate) -> PatientResponse:
         action="patient.create",
         resource_type="patient",
         resource_id=payload.patient_id,
+        actor_id=actor_id,
         detail={"best_target": best},
     )
     return patient_to_response(patient)
@@ -113,7 +117,9 @@ def patient_to_response(patient: Patient) -> PatientResponse:
     )
 
 
-def create_car_design(db: Session, payload: CarDesignRequest) -> CarDesignResponse:
+def create_car_design(
+    db: Session, payload: CarDesignRequest, actor_id: str | None = None
+) -> CarDesignResponse:
     patient = get_patient(db, payload.patient_id)
     if patient is None:
         raise ValueError(f"Patient not found: {payload.patient_id}")
@@ -146,6 +152,14 @@ def create_car_design(db: Session, payload: CarDesignRequest) -> CarDesignRespon
     db.add(row)
     db.commit()
     db.refresh(row)
+    write_audit(
+        db,
+        "design.create",
+        "car_design",
+        row.design_id,
+        actor_id=actor_id,
+        detail={"patient_id": row.patient_id, "target": row.target_antigen},
+    )
     return design_to_response(row, design)
 
 
@@ -168,7 +182,9 @@ def design_to_response(row: CarDesign, design: dict | None = None) -> CarDesignR
     )
 
 
-def run_simulation(db: Session, payload: SimulationRequest) -> SimulationResponse:
+def run_simulation(
+    db: Session, payload: SimulationRequest, actor_id: str | None = None
+) -> SimulationResponse:
     patient = get_patient(db, payload.patient_id)
     if patient is None:
         raise ValueError(f"Patient not found: {payload.patient_id}")
@@ -224,6 +240,19 @@ def run_simulation(db: Session, payload: SimulationRequest) -> SimulationRespons
         SIMULATION_COUNTER.labels(outcome=outcome).inc()
     except Exception:
         pass
+    write_audit(
+        db,
+        "simulation.run",
+        "simulation",
+        row.simulation_id,
+        actor_id=actor_id,
+        detail={
+            "patient_id": row.patient_id,
+            "design_id": row.design_id,
+            "inference_source": result.get("inference_source"),
+            "model_version": result["explanation"].get("model_version"),
+        },
+    )
     return simulation_to_response(row, result)
 
 
@@ -276,7 +305,9 @@ def simulation_to_response(row: Simulation, result: dict | None = None) -> Simul
     )
 
 
-def create_protocol(db: Session, payload: ProtocolRequest) -> ProtocolResponse:
+def create_protocol(
+    db: Session, payload: ProtocolRequest, actor_id: str | None = None
+) -> ProtocolResponse:
     design_row = db.query(CarDesign).filter(CarDesign.design_id == payload.design_id).first()
     if design_row is None:
         raise ValueError(f"CAR design not found: {payload.design_id}")
@@ -307,6 +338,14 @@ def create_protocol(db: Session, payload: ProtocolRequest) -> ProtocolResponse:
     db.add(row)
     db.commit()
     db.refresh(row)
+    write_audit(
+        db,
+        "protocol.create",
+        "protocol",
+        row.protocol_id,
+        actor_id=actor_id,
+        detail={"patient_id": row.patient_id, "design_id": row.design_id},
+    )
     return ProtocolResponse(
         protocol_id=row.protocol_id,
         patient_id=row.patient_id,
@@ -319,7 +358,9 @@ def create_protocol(db: Session, payload: ProtocolRequest) -> ProtocolResponse:
     )
 
 
-def create_therapy_plan(db: Session, payload: TherapyPlanRequest) -> TherapyPlanResponse:
+def create_therapy_plan(
+    db: Session, payload: TherapyPlanRequest, actor_id: str | None = None
+) -> TherapyPlanResponse:
     design = create_car_design(
         db,
         CarDesignRequest(
@@ -327,6 +368,7 @@ def create_therapy_plan(db: Session, payload: TherapyPlanRequest) -> TherapyPlan
             target_antigen=payload.target_antigen,
             car_version=payload.car_version,
         ),
+        actor_id=actor_id,
     )
     simulation = run_simulation(
         db,
@@ -335,6 +377,7 @@ def create_therapy_plan(db: Session, payload: TherapyPlanRequest) -> TherapyPlan
             design_id=design.design_id,
             dose_cells=payload.dose_cells,
         ),
+        actor_id=actor_id,
     )
     protocol = create_protocol(
         db,
@@ -343,6 +386,7 @@ def create_therapy_plan(db: Session, payload: TherapyPlanRequest) -> TherapyPlan
             design_id=design.design_id,
             target_cell_dose=payload.dose_cells,
         ),
+        actor_id=actor_id,
     )
     return TherapyPlanResponse(
         patient_id=payload.patient_id,

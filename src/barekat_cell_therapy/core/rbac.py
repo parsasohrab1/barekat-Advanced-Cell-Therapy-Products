@@ -30,7 +30,9 @@ def get_current_user(
     settings = get_settings()
     if credentials is None:
         if settings.auth_required:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required"
+            )
         return None
     try:
         payload = verify_access_token(credentials.credentials)
@@ -41,6 +43,21 @@ def get_current_user(
     if user is None or not user.is_active:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
     return user
+
+
+def get_optional_user(
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer),
+    db: Session = Depends(get_db),
+) -> User | None:
+    """Caller identity if a valid token is present; never raises (for public endpoints)."""
+    if credentials is None:
+        return None
+    try:
+        payload = verify_access_token(credentials.credentials)
+    except TokenDecodeError:
+        return None
+    user = db.query(User).filter(User.user_id == payload["sub"]).first()
+    return user if user is not None and user.is_active else None
 
 
 def require_role(min_role: str):

@@ -26,6 +26,8 @@ TIME_POINTS = [7, 14, 30, 60, 90]
 def generate_cell_therapy_data(
     n_patients: int = 200,
     seed: int = 42,
+    antigen_scale: float = 1.5,
+    car_probs: tuple[float, float, float] = (0.2, 0.3, 0.5),
 ) -> pd.DataFrame:
     """Generate synthetic patient profiles with HLA, antigen, response and adverse events."""
     rng = np.random.default_rng(seed)
@@ -36,7 +38,7 @@ def generate_cell_therapy_data(
 
     antigen_expression: dict[str, np.ndarray] = {}
     for antigen in TUMOR_ANTIGENS:
-        expression = rng.gamma(2, 1.5, n_patients) * 10
+        expression = rng.gamma(2, antigen_scale, n_patients) * 10
         antigen_expression[f"{antigen}_Expression"] = np.round(np.clip(expression, 0, 100), 2)
 
     best_antigens: list[str] = []
@@ -44,7 +46,7 @@ def generate_cell_therapy_data(
         expr_values = {ag: antigen_expression[f"{ag}_Expression"][i] for ag in TUMOR_ANTIGENS}
         best_antigens.append(max(expr_values, key=expr_values.get))
 
-    car_type = rng.choice(["CARv1", "CARv2", "CARv3"], n_patients, p=[0.2, 0.3, 0.5])
+    car_type = rng.choice(["CARv1", "CARv2", "CARv3"], n_patients, p=list(car_probs))
     car_efficacy = np.array([CAR_EFFICIENCY[c] for c in car_type])
 
     response_prob = np.zeros(n_patients)

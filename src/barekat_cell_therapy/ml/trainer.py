@@ -19,7 +19,21 @@ FEATURE_COLUMNS = [
     "car_efficacy",
     "HLA_A0201",
     "HLA_DRB10101",
+    "max_expression",
+    "efficacy_x_max_expr",
 ]
+
+
+def add_derived_features(X: pd.DataFrame) -> pd.DataFrame:
+    """Domain features: strongest targetable antigen and its CAR-efficacy-weighted level.
+
+    Tree ensembles extrapolate poorly under covariate shift (different antigen density per
+    site); these monotone summaries keep the signal stable across sites.
+    """
+    ag = [f"{a}_Expression" for a in TUMOR_ANTIGENS]
+    X["max_expression"] = X[ag].max(axis=1)
+    X["efficacy_x_max_expr"] = X["car_efficacy"] * X["max_expression"] / 100.0
+    return X
 
 
 def prepare_features(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
@@ -31,6 +45,7 @@ def prepare_features(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
     X["car_efficacy"] = df["CAR_Type"].map(CAR_EFFICIENCY).fillna(0.7)
     X["HLA_A0201"] = df["HLA_A_0201"] if "HLA_A_0201" in df.columns else 0
     X["HLA_DRB10101"] = df["HLA_DRB1_0101"] if "HLA_DRB1_0101" in df.columns else 0
+    X = add_derived_features(X)
     y = df["Treatment_Response"]
     return X, y
 
@@ -67,15 +82,17 @@ def train_response_model(df: pd.DataFrame, output_dir: str | None = None) -> dic
     metrics["model_version"] = "v1"
     model_path = out / settings.response_model
     joblib.dump({"model": model, "features": FEATURE_COLUMNS, "metrics": metrics}, model_path)
-    metrics["model_path"] = str(model_path)
 
     from barekat_cell_therapy.ml.registry import register_model
 
+    # The registry always lives next to the model file, so training into a scratch
+    # directory (tests, validation runs) can never overwrite the production registry.
     register_model(
         version="v1",
         file=settings.response_model,
         metrics={k: v for k, v in metrics.items() if k != "feature_columns"},
         promote=True,
+        model_dir=out,
     )
     # Invalidate cached predictor after retrain
     from barekat_cell_therapy.ml.predictor import load_response_model

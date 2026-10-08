@@ -21,8 +21,7 @@ def explain_prediction(
     pred_proba = model.predict_proba(X)[0]
     pred_class = int(model.predict(X)[0])
 
-    importances = _get_feature_importances(model, feature_columns)
-    contributions = _compute_contributions(features, importances, feature_columns, pred_class)
+    contributions = _occlusion_contributions(model, feature_columns, features)
     contributions.sort(key=lambda c: abs(c.contribution), reverse=True)
 
     return ModelExplanation(
@@ -30,7 +29,7 @@ def explain_prediction(
         predicted_outcome="responder" if pred_class == 1 else "non_responder",
         confidence=float(pred_proba[pred_class]),
         top_features=contributions[:top_k],
-        method="feature_importance" if importances else "permutation_proxy",
+        method="occlusion",
     )
 
 
@@ -82,3 +81,34 @@ def _compute_contributions(
             )
         )
     return contributions
+
+
+def _occlusion_contributions(
+    model, feature_columns: list[str], features: dict[str, float]
+) -> list[FeatureContribution]:
+    """Local attribution: change in P(responder) when a feature is set to its neutral value (0).
+
+    Positive contribution = the feature's actual value raises the response probability.
+    """
+    import pandas as pd
+
+    base = {c: float(features.get(c, 0.0)) for c in feature_columns}
+    rows = [base]
+    for col in feature_columns:
+        occluded = dict(base)
+        occluded[col] = 0.0
+        rows.append(occluded)
+    X = pd.DataFrame([[r[c] for c in feature_columns] for r in rows], columns=feature_columns)
+    proba = model.predict_proba(X)[:, 1]
+    out: list[FeatureContribution] = []
+    for col, p_occ in zip(feature_columns, proba[1:]):
+        delta = float(proba[0] - p_occ)
+        out.append(
+            FeatureContribution(
+                feature=col,
+                value=round(base[col], 4),
+                contribution=round(delta, 4),
+                direction="positive" if delta >= 0 else "negative",
+            )
+        )
+    return out
