@@ -1,6 +1,6 @@
 {
   "version": "0.3.0",
-  "generated_at": "2026-10-07T21:04:44+00:00",
+  "generated_at": "2026-10-08T08:05:43+00:00",
   "model": {
     "development_cohort": {
       "n_patients": 1000,
@@ -101,8 +101,8 @@
     "n_plans": 30,
     "success_rate": 1.0,
     "ml_model_fraction": 1.0,
-    "latency_p50_s": 0.3089,
-    "latency_p95_s": 0.4735,
+    "latency_p50_s": 0.2099,
+    "latency_p95_s": 0.363,
     "concurrent_success_rate": 1.0,
     "audit_actions": {
       "design.create": 54,
@@ -258,7 +258,7 @@
         "id": "S2",
         "description": "p95 latency of /therapy/plan (seconds)",
         "rule": "<= 2.0",
-        "measured": 0.4735,
+        "measured": 0.363,
         "pass": true
       },
       {

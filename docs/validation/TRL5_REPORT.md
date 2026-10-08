@@ -1,6 +1,6 @@
 # TRL-5 Validation Evidence - v0.3.0
 
-Generated: 2026-10-07T21:04:44+00:00  
+Generated: 2026-10-08T08:05:43+00:00  
 **Verdict: ALL CRITERIA MET**
 
 > Scope: in-silico validation of an integrated decision-support system in a simulated operational environment, on *synthetic* cohorts. It is evidence for TRL 5 of the software system; it is NOT clinical validation. See docs/TRL.md for the limits.
@@ -24,7 +24,7 @@ Generated: 2026-10-07T21:04:44+00:00
 | robustness | R3 | Invalid (non-finite / out-of-range) predictions | <= 0.0 | 0.0 | PASS |
 | robustness | R4 | Prediction mismatches between two seeded trainings | <= 0.0 | 0.0 | PASS |
 | system | S1 | End-to-end plan success rate | >= 1.0 | 1.0 | PASS |
-| system | S2 | p95 latency of /therapy/plan (seconds) | <= 2.0 | 0.4735 | PASS |
+| system | S2 | p95 latency of /therapy/plan (seconds) | <= 2.0 | 0.363 | PASS |
 | system | S3 | Audit events per plan (design+simulation+protocol) | >= 3.0 | 3.0 | PASS |
 | system | S4 | RBAC matrix checks passed (fraction) | >= 1.0 | 1.0 | PASS |
 | system | S5 | Plans served by trained model (fraction) | >= 1.0 | 1.0 | PASS |
@@ -134,8 +134,8 @@ Generated: 2026-10-07T21:04:44+00:00
     "n_plans": 30,
     "success_rate": 1.0,
     "ml_model_fraction": 1.0,
-    "latency_p50_s": 0.3089,
-    "latency_p95_s": 0.4735,
+    "latency_p50_s": 0.2099,
+    "latency_p95_s": 0.363,
     "concurrent_success_rate": 1.0,
     "audit_actions": {
       "design.create": 54,

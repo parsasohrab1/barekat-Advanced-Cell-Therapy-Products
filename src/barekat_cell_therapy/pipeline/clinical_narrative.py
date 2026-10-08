@@ -33,7 +33,8 @@ def build_clinical_narrative(
     )
 
     return (
-        f"For target {target_antigen} with {car_version}, the patient is predicted as a \"{outcome}\" "
+        f"For target {target_antigen} with {car_version}, "
+        f"the patient is predicted as a \"{outcome}\" "
         f"with a response probability of {response_probability:.0%}. "
         f"Main model drivers: {drivers}. "
         f"{crs_note}. {neuro}"
